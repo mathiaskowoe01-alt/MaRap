@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../../db/store';
-import { CalendarCheck, Trash2, AlertCircle, Sparkles, CheckSquare, Square, MessageSquare } from 'lucide-react';
+import { CalendarCheck, Trash2, Edit3, AlertCircle, Sparkles, CheckSquare, Square, MessageSquare, Plus } from 'lucide-react';
 import type { Task } from '../../db/types';
+import TaskFormModal from '../../components/Tasks/TaskFormModal';
 
 export const TodayScreen: React.FC = () => {
   const [store, storeActions] = useStore();
+
+  // Modal form states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   // Helper: Get local today string in YYYY-MM-DD
   const getTodayStr = () => {
@@ -17,11 +22,10 @@ export const TodayScreen: React.FC = () => {
 
   const todayStr = getTodayStr();
 
-  // Format date for Header (e.g., "Mardi 25 Août")
+  // Format date for Header (e.g., "Mardi 25 août")
   const formatHeaderDate = () => {
     const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long' };
     const dateStr = new Date().toLocaleDateString('fr-FR', options);
-    // Capitalize first letter
     return dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
   };
 
@@ -32,6 +36,23 @@ export const TodayScreen: React.FC = () => {
   const totalTodayTasks = todayTasks.length;
   const completedTodayTasks = todayTasks.filter(t => t.status === 'termine').length;
   const progressPercent = totalTodayTasks > 0 ? Math.round((completedTodayTasks / totalTodayTasks) * 100) : 0;
+
+  // Handlers for modal
+  const openCreateModal = () => {
+    setEditingTask(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (task: Task, e: React.MouseEvent) => {
+    e.stopPropagation(); // Avoid triggering status toggle
+    setEditingTask(task);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingTask(null);
+  };
 
   // Handle delete
   const handleDeleteTask = (e: React.MouseEvent, taskId: string) => {
@@ -87,6 +108,26 @@ export const TodayScreen: React.FC = () => {
 
         <div className="task-item-actions">
           <button 
+            onClick={(e) => openEditModal(task, e)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--text-tertiary)',
+              padding: '4px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'color var(--transition-fast)'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
+            title="Modifier la tâche"
+          >
+            <Edit3 size={15} />
+          </button>
+          <button 
             onClick={(e) => handleDeleteTask(e, task.id)}
             style={{
               background: 'none',
@@ -116,7 +157,7 @@ export const TodayScreen: React.FC = () => {
       {/* Date Header */}
       <div>
         <h1 className="header-title">{formatHeaderDate()}</h1>
-        <p className="header-subtitle">Prêt pour planifier et réussir votre journée ?</p>
+        <p className="header-subtitle font-sans">Prêt pour planifier et réussir votre journée ?</p>
       </div>
 
       {/* Completion Progress Tracker */}
@@ -261,6 +302,18 @@ export const TodayScreen: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Floating Action Button (FAB) */}
+      <button className="fab" onClick={openCreateModal} title="Créer une tâche">
+        <Plus size={28} />
+      </button>
+
+      {/* Shared Task Creation/Editing Modal */}
+      <TaskFormModal 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+        taskToEdit={editingTask} 
+      />
     </div>
   );
 };
