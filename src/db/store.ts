@@ -31,10 +31,13 @@ interface AppState {
   networkStatus: 'online' | 'offline';
   syncing: boolean;
   currentUserId: string;
-  currentTab: 'today' | 'tasks' | 'calendar' | 'reminders' | 'settings';
+  isAuthenticated: boolean;
+  userEmail: string | null;
+  currentTab: 'today' | 'tasks' | 'calendar' | 'reminders' | 'settings' | 'admin';
   dailyNote: string;
   toasts: ToastMessage[];
   syncHistory: SyncHistoryItem[];
+  adminUsers: { id: string; email: string; created_at: string; total_tasks: number; completed_tasks: number }[];
 }
 
 // --- LOCAL STORAGE RECOVERY OR INITIAL STATE ---
@@ -64,10 +67,13 @@ let state: AppState = {
   networkStatus: 'online',
   syncing: false,
   currentUserId: initialUserId,
+  isAuthenticated: false,
+  userEmail: null,
   currentTab: 'today',
   dailyNote: initialDailyNote,
   toasts: [],
-  syncHistory: initialSyncHistory
+  syncHistory: initialSyncHistory,
+  adminUsers: []
 };
 
 // --- EMITTER SYSTEM FOR REACTIVITY ---
@@ -336,6 +342,71 @@ export const subscribeUserToPush = async () => {
   }
 };
 
+export const fetchUserData = async (userId: string) => {
+  try {
+    updateState({ syncing: true });
+    
+    // 1. Fetch categories
+    const { data: dbCategories, error: catError } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('user_id', userId);
+      
+    if (catError) throw catError;
+    
+    let finalCategories = dbCategories || [];
+    
+    // Seed default categories if none found in cloud
+    if (finalCategories.length === 0) {
+      const seededCats = DEFAULT_CATEGORIES.map(c => ({ ...c, user_id: userId }));
+      const { error: seedError } = await supabase.from('categories').insert(seededCats);
+      if (!seedError) {
+        finalCategories = seededCats;
+      }
+    }
+    
+    // 2. Fetch tasks
+    const { data: dbTasks, error: taskError } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('user_id', userId);
+      
+    if (taskError) throw taskError;
+    
+    // 3. Fetch reminders
+    const taskIds = (dbTasks || []).map(t => t.id);
+    let finalReminders: Reminder[] = [];
+    
+    if (taskIds.length > 0) {
+      const { data: dbReminders, error: remindError } = await supabase
+        .from('reminders')
+        .select('*')
+        .in('task_id', taskIds);
+        
+      if (!remindError && dbReminders) {
+        finalReminders = dbReminders;
+      }
+    }
+    
+    updateState({
+      categories: finalCategories,
+      tasks: dbTasks || [],
+      reminders: finalReminders,
+      syncing: false
+    });
+    
+    // Sync into localStorage
+    localStorage.setItem('marap_categories', JSON.stringify(finalCategories));
+    localStorage.setItem('marap_tasks', JSON.stringify(dbTasks || []));
+    localStorage.setItem('marap_reminders', JSON.stringify(finalReminders));
+    
+    console.log('User data loaded from Supabase successfully.');
+  } catch (err) {
+    console.error('Error fetching user data from Supabase:', err);
+    updateState({ syncing: false });
+  }
+};
+
 // --- ACTIONS METIER ---
 export const actions = {
   // Tasks CRUD
@@ -568,6 +639,98 @@ export const actions = {
 
   subscribeToPush: async () => {
     await subscribeUserToPush();
+  },
+
+  signUp: async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      addToast('Erreur d\'inscription', error.message, 'error');
+      throw error;
+    }
+    addToast('Inscription réussie', 'Vérifiez votre boîte e-mail pour valider votre compte.', 'success');
+    return data;
+  },
+
+  signIn: async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      addToast('Erreur de connexion', error.message, 'error');
+      throw error;
+    }
+    addToast('Connexion réussie', 'Bienvenue sur votre espace MaRap !', 'success');
+    return data;
+  },
+
+  signInWithGoogle: async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+    if (error) {
+      addToast('Erreur Google Auth', error.message, 'error');
+      throw error;
+    }
+    return data;
+  },
+
+  fetchAdminData: async () => {
+    try {
+      // 1. Fetch profiles from public.profiles
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('*');
+      
+      if (profileError) throw profileError;
+
+      // 2. Fetch tasks for stats
+      const { data: tasks, error: taskError } = await supabase
+        .from('tasks')
+        .select('user_id, status');
+      
+      if (taskError) throw taskError;
+
+      // 3. Map users and compute stats
+      const userStats = (profiles || []).map(profile => {
+        const userTasks = (tasks || []).filter(t => t.user_id === profile.id);
+        const total = userTasks.length;
+        const completed = userTasks.filter(t => t.status === 'termine').length;
+
+        return {
+          id: profile.id,
+          email: profile.email,
+          created_at: profile.created_at,
+          total_tasks: total,
+          completed_tasks: completed
+        };
+      });
+
+      updateState({ adminUsers: userStats });
+    } catch (err) {
+      console.error('Error fetching admin statistics:', err);
+    }
+  },
+
+  signOut: async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      addToast('Erreur', error.message, 'error');
+      throw error;
+    }
+    // Clean local storage for security
+    localStorage.removeItem('marap_tasks');
+    localStorage.removeItem('marap_reminders');
+    localStorage.removeItem('marap_categories');
+    updateState({
+      tasks: [],
+      categories: DEFAULT_CATEGORIES,
+      reminders: [],
+      isAuthenticated: false,
+      userEmail: null,
+      currentUserId: 'user-default'
+    });
+    addToast('Déconnexion', 'Vous avez été déconnecté.', 'info');
   }
 };
 
@@ -588,6 +751,29 @@ export const useStore = (): [AppState, typeof actions] => {
 
 // --- BACKGROUND DAEMON FOR MOCK PUSH REMINDERS ---
 if (typeof window !== 'undefined') {
+  // Listen for Supabase Authentication changes
+  supabase.auth.onAuthStateChange((_event, session) => {
+    if (session && session.user) {
+      const isNewUser = state.currentUserId !== session.user.id;
+      
+      updateState({
+        isAuthenticated: true,
+        currentUserId: session.user.id,
+        userEmail: session.user.email
+      });
+      
+      if (isNewUser) {
+        fetchUserData(session.user.id);
+      }
+    } else {
+      updateState({
+        isAuthenticated: false,
+        userEmail: null,
+        currentUserId: 'user-default'
+      });
+    }
+  });
+
   // Request notifications permissions and auto-register push on startup
   if ('Notification' in window) {
     if (Notification.permission === 'default') {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../../db/store';
-import { Sparkles, Calendar, ListTodo, Bell, Settings, LogOut, CheckSquare, X } from 'lucide-react';
+import { Sparkles, Calendar, ListTodo, Bell, Settings, LogOut, CheckSquare, X, ShieldAlert } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -11,12 +11,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const [store, storeActions] = useStore();
 
   const navItems = [
-    { id: 'today', label: "Ma journée", icon: Sparkles },
-    { id: 'calendar', label: 'Calendrier', icon: Calendar },
-    { id: 'tasks', label: 'Tâches', icon: ListTodo },
-    { id: 'reminders', label: 'Rappels & Catégories', icon: Bell },
-    { id: 'settings', label: 'Paramètres', icon: Settings }
-  ] as const;
+    { id: 'today' as const, label: "Ma journée", icon: Sparkles },
+    { id: 'calendar' as const, label: 'Calendrier', icon: Calendar },
+    { id: 'tasks' as const, label: 'Tâches', icon: ListTodo },
+    { id: 'reminders' as const, label: 'Rappels & Catégories', icon: Bell },
+    { id: 'settings' as const, label: 'Paramètres', icon: Settings }
+  ];
+
+  const isAdmin = store.userEmail?.toLowerCase().includes('admin');
+  
+  const visibleNavItems = isAdmin 
+    ? [...navItems, { id: 'admin' as const, label: 'Administration', icon: ShieldAlert }]
+    : navItems;
 
   const handleNavClick = (tabId: typeof store.currentTab) => {
     storeActions.setCurrentTab(tabId);
@@ -48,7 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* Navigation items */}
         <nav className="sidebar-nav">
-          {navItems.map(item => {
+          {visibleNavItems.map(item => {
             const Icon = item.icon;
             const isActive = store.currentTab === item.id;
 
@@ -68,16 +74,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* User section at bottom */}
         <div className="sidebar-footer">
           <div className="user-profile">
-            <div className="user-avatar">MK</div>
+            <div className="user-avatar">
+              {store.userEmail ? store.userEmail.slice(0, 2).toUpperCase() : 'MK'}
+            </div>
             <div className="user-info">
-              <span className="user-name">Mathias Kowoe</span>
-              <span className="user-email">mathiaskowoe@demo.com</span>
+              <span className="user-name" style={{ textTransform: 'capitalize' }}>
+                {store.userEmail ? store.userEmail.split('@')[0] : 'Mathias Kowoe'}
+              </span>
+              <span className="user-email" style={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px', whiteSpace: 'nowrap' }}>
+                {store.userEmail || 'mathiaskowoe@demo.com'}
+              </span>
             </div>
           </div>
           <button 
             className="logout-btn" 
-            onClick={() => storeActions.clearDatabase()}
-            title="Réinitialiser l'application"
+            onClick={() => storeActions.signOut()}
+            title="Se déconnecter"
           >
             <LogOut size={16} />
           </button>

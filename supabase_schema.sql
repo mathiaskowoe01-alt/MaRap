@@ -1,5 +1,5 @@
 -- MaRap Database Schema
--- Run this in your Supabase SQL Editor to enable full cloud synchronization.
+-- Run this in your Supabase SQL Editor to enable full cloud synchronization and Admin Dashboard features.
 
 -- 1. Create categories table
 CREATE TABLE IF NOT EXISTS categories (
@@ -46,3 +46,27 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
   device_id TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- 5. Create profiles table (for Admin Dashboard users list)
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+  email TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 6. Trigger to automatically copy new auth signups to public profiles
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email)
+  VALUES (new.id, new.email)
+  ON CONFLICT (id) DO NOTHING;
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger execution
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
