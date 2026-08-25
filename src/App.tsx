@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from './db/store';
-import PhoneFrame from './components/Layout/PhoneFrame';
-import TabNavigation from './components/Layout/TabNavigation';
+import Sidebar from './components/Layout/Sidebar';
+import Header from './components/Layout/Header';
 import TodayScreen from './screens/Today/TodayScreen';
 import CalendarScreen from './screens/Calendar/CalendarScreen';
 import TasksScreen from './screens/Tasks/TasksScreen';
@@ -11,8 +11,9 @@ import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [store, storeActions] = useStore();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Load Canvas Confetti scripts on mount (optional dynamic load)
+  // Load Canvas Confetti script on mount
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
@@ -54,9 +55,16 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
-      <PhoneFrame>
-        {/* Dynamic Toast Alerts Container inside phone viewport */}
+    <div className="app-container">
+      {/* Left Sidebar Menu */}
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
+      {/* Main Panel */}
+      <div className="main-layout">
+        {/* Top Navbar */}
+        <Header onMenuToggle={() => setIsSidebarOpen(prev => !prev)} />
+
+        {/* Global Toast Alert Notifications */}
         <div className="toast-container">
           {store.toasts.map(toast => (
             <div key={toast.id} className={`toast toast-${toast.type}`}>
@@ -77,12 +85,11 @@ export const App: React.FC = () => {
           ))}
         </div>
 
-        {/* Active view */}
-        {renderActiveScreen()}
-
-        {/* Navigation bottom bar */}
-        <TabNavigation />
-      </PhoneFrame>
+        {/* Content viewport */}
+        <main className="content-area">
+          {renderActiveScreen()}
+        </main>
+      </div>
     </div>
   );
 };

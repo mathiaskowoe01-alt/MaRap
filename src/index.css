@@ -56,12 +56,9 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: #E2E8F0; /* Soft gray background for the desktop screen */
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
   position: relative;
 }
@@ -80,10 +77,10 @@ body::after {
   opacity: 0.8; /* Subtle noise filter opacity */
 }
 
-/* Custom Scrollbar for Phone view */
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -96,240 +93,381 @@ body::after {
   background: var(--text-tertiary);
 }
 
-/* --- SMARTPHONE MOCKUP FRAME (DESKTOP) --- */
-.phone-frame {
-  width: 412px;
-  height: 840px;
-  background: #000000;
-  border-radius: 48px;
-  padding: 12px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 40px rgba(0, 0, 0, 0.1) inset;
-  border: 4px solid #2D3748;
+/* --- WEB DASHBOARD GRID LAYOUT --- */
+.app-container {
   display: flex;
-  flex-direction: column;
-  position: relative;
-  transition: all var(--transition-normal);
-  z-index: 10;
-}
-
-/* The actual screen inside the mockup */
-.phone-screen {
-  flex: 1;
+  min-height: 100vh;
+  width: 100vw;
   background-color: var(--bg-primary);
-  border-radius: 36px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
   position: relative;
 }
 
-/* Phone Status Bar (mock clock, icons) */
-.phone-status-bar {
-  height: 44px;
-  padding: 0 28px;
+.main-layout {
+  flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--text-primary);
-  user-select: none;
-  background-color: var(--bg-primary);
-  z-index: 50;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
 }
 
-.status-bar-icons {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Notch / Dynamic Island Simulator */
-.phone-notch {
-  position: absolute;
-  top: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 110px;
-  height: 30px;
-  background: #000000;
-  border-radius: 20px;
-  z-index: 100;
-  transition: all var(--transition-bounce);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 10px;
-}
-
-.phone-notch:hover {
-  width: 260px;
-  height: 38px;
-}
-
-/* In-notch notifications logic preview */
-.notch-content {
-  opacity: 0;
-  white-space: nowrap;
-  pointer-events: none;
-  transition: opacity 0.2s ease-out;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  width: 100%;
-  padding: 0 16px;
-  justify-content: space-between;
-}
-
-.phone-notch:hover .notch-content {
-  opacity: 1;
-}
-
-/* Phone Bottom Home Indicator */
-.phone-home-indicator {
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--bg-primary);
-  z-index: 50;
-  pointer-events: none;
-}
-
-.home-bar {
-  width: 130px;
-  height: 5px;
-  background-color: var(--text-primary);
-  border-radius: 99px;
-  opacity: 0.3;
-}
-
-/* Main Container of active content */
-.phone-content {
+.content-area {
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;
-  padding: 16px 20px 80px 20px; /* space at bottom for tabbar */
-  position: relative;
+  padding: 32px;
+}
+
+/* Page content wrapper formatting */
+.phone-content {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+  animation: fadeIn var(--transition-normal);
 }
 
-/* Responsive mode: expand if viewport is small (smartphone) */
-@media (max-width: 480px) {
-  body {
-    background-color: var(--bg-primary);
-    padding: 0;
-  }
-  .phone-frame {
-    width: 100vw;
-    height: 100vh;
-    border-radius: 0;
-    padding: 0;
-    border: none;
-    box-shadow: none;
-  }
-  .phone-screen {
-    border-radius: 0;
-  }
-  .phone-notch {
-    display: none;
-  }
-  .phone-status-bar {
-    padding-top: 10px;
-    height: 54px;
-  }
-}
-
-/* --- PREMIUM UI COMPONENTS --- */
-
-/* Tab Navigation */
-.tab-bar {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  right: 12px;
-  height: 68px;
-  background-color: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-  border-radius: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 0 10px;
-  box-shadow: var(--shadow-md);
-  z-index: 40;
-}
-
-.tab-item {
+/* --- WEB SIDEBAR STYLING --- */
+.app-sidebar {
+  width: 260px;
+  height: 100vh;
+  background-color: var(--bg-card);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
+  transition: transform var(--transition-normal);
+  z-index: 100;
+}
+
+.sidebar-header {
+  height: 70px;
+  padding: 0 24px;
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  color: var(--accent);
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.sidebar-close-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-  gap: 4px;
-  position: relative;
-  flex: 1;
-}
-
-.tab-item:active {
-  transform: scale(0.92);
-}
-
-.tab-item-icon {
-  width: 22px;
-  height: 22px;
-  transition: transform var(--transition-bounce);
-}
-
-.tab-item:hover .tab-item-icon {
-  transform: translateY(-2px);
-}
-
-.tab-item-label {
-  font-size: 10px;
+  text-align: left;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  transition: all var(--transition-fast);
+  border-left: 3px solid transparent;
 }
 
-.tab-item.active {
+.sidebar-nav-item:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.sidebar-nav-item.active {
+  background-color: var(--accent-light);
+  color: var(--accent);
+  border-left-color: var(--accent);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.sidebar-footer {
+  padding: 20px 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, #4F46E5 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.user-email {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.logout-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--error);
+}
+
+/* --- HEADER NAVBAR STYLING --- */
+.app-header {
+  height: 70px;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  z-index: 50;
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.menu-toggle-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+}
+
+.menu-toggle-btn:hover {
+  background-color: var(--bg-hover);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.breadcrumb-parent {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.breadcrumb-separator {
+  color: var(--text-tertiary);
+}
+
+.breadcrumb-current {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sync-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sync-status-badge:hover {
+  background-color: var(--bg-hover);
+}
+
+.sync-status-badge .status-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sync-status-badge .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.sync-status-badge .status-dot.success {
+  background-color: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+
+.sync-status-badge .status-dot.offline {
+  background-color: var(--error);
+  box-shadow: 0 0 6px var(--error);
+}
+
+.sync-spinner {
   color: var(--accent);
 }
 
-.tab-item.active::after {
-  content: "";
+/* Backdrop for Sidebar drawer on mobile */
+.sidebar-backdrop {
   position: absolute;
-  bottom: 0;
-  width: 16px;
-  height: 3px;
-  background-color: var(--accent);
-  border-radius: 99px;
-  animation: tabDot var(--transition-bounce) forwards;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 90;
+  animation: fadeIn var(--transition-fast) forwards;
 }
 
-@keyframes tabDot {
-  0% { transform: scaleX(0); }
-  100% { transform: scaleX(1); }
+/* --- TOASTS / SYSTEM NOTIFICATIONS --- */
+.toast-container {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 340px;
+  pointer-events: none;
 }
 
-/* Cards (Standard SaaS Cards) */
+.toast {
+  pointer-events: auto;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--accent);
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  gap: 12px;
+  animation: toastSlideIn var(--transition-bounce) forwards;
+  transition: all var(--transition-fast);
+}
+
+.toast-success { border-left-color: var(--success); }
+.toast-error { border-left-color: var(--error); }
+.toast-warning { border-left-color: var(--warning); }
+
+.toast-content {
+  flex: 1;
+}
+
+.toast-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.toast-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-tertiary);
+}
+
+@keyframes toastSlideIn {
+  from { transform: translateY(-40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* --- CARDS & ACCENTS --- */
 .card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 24px;
   box-shadow: var(--shadow-sm);
   transition: transform var(--transition-normal), box-shadow var(--transition-normal);
   position: relative;
@@ -343,7 +481,7 @@ body::after {
 
 /* Headers */
 .header-title {
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--text-primary);
@@ -404,18 +542,11 @@ body::after {
   background-color: var(--border-color);
 }
 
-.btn-icon {
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border-radius: 50%;
-}
-
-/* Floating Actions Button (iOS styled) */
+/* Floating Actions Button */
 .fab {
-  position: absolute;
-  bottom: 92px;
-  right: 20px;
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
   width: 56px;
   height: 56px;
   border-radius: 28px;
@@ -427,7 +558,7 @@ body::after {
   box-shadow: 0 8px 16px rgba(37, 99, 235, 0.25);
   cursor: pointer;
   border: none;
-  z-index: 30;
+  z-index: 80;
   transition: all var(--transition-bounce);
 }
 
@@ -440,33 +571,32 @@ body::after {
   transform: scale(0.95);
 }
 
-/* Modals */
+/* Modals Sheets */
 .modal-overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  z-index: 100;
+  z-index: 150;
   display: flex;
-  align-items: flex-end; /* Slide up from bottom like native sheets */
+  align-items: center;
   justify-content: center;
   animation: fadeIn var(--transition-fast) forwards;
 }
 
 .modal-content {
-  width: 100%;
+  width: 460px;
   background-color: var(--bg-card);
-  border-top-left-radius: var(--radius-xl);
-  border-top-right-radius: var(--radius-xl);
-  padding: 24px 20px;
-  max-height: 80%;
+  border-radius: var(--radius-xl);
+  padding: 32px 28px;
+  max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--shadow-premium);
-  animation: slideUp var(--transition-bounce) forwards;
+  animation: modalReveal var(--transition-bounce) forwards;
   position: relative;
 }
 
@@ -475,9 +605,9 @@ body::after {
   to { opacity: 1; }
 }
 
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+@keyframes modalReveal {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 /* Floating label form inputs */
@@ -489,7 +619,7 @@ body::after {
 
 .input-field {
   width: 100%;
-  padding: 16px 12px 6px 12px;
+  padding: 18px 14px 6px 14px;
   font-size: 15px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
@@ -507,7 +637,7 @@ body::after {
 
 .input-label {
   position: absolute;
-  left: 12px;
+  left: 14px;
   top: 14px;
   font-size: 15px;
   color: var(--text-secondary);
@@ -585,13 +715,13 @@ body::after {
   transform: rotate(45deg);
 }
 
-/* Badges / Status Indicators */
+/* Badges */
 .badge {
   display: inline-flex;
   align-items: center;
   padding: 4px 8px;
   border-radius: var(--radius-sm);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: -0.01em;
   text-transform: uppercase;
@@ -619,76 +749,15 @@ body::after {
   display: inline-block;
 }
 
-/* --- TOASTS / SYSTEM NOTIFICATIONS --- */
-.toast-container {
-  position: absolute;
-  top: 56px;
-  left: 20px;
-  right: 20px;
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  pointer-events: none;
-}
-
-.toast {
-  pointer-events: auto;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-  border-left: 4px solid var(--accent);
-  padding: 14px 16px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  gap: 12px;
-  animation: toastSlideIn var(--transition-bounce) forwards;
-  transition: all var(--transition-fast);
-}
-
-.toast-success { border-left-color: var(--success); }
-.toast-error { border-left-color: var(--error); }
-.toast-warning { border-left-color: var(--warning); }
-
-.toast-content {
-  flex: 1;
-}
-
-.toast-title {
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--text-primary);
-  margin-bottom: 2px;
-}
-
-.toast-desc {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-tertiary);
-}
-
-@keyframes toastSlideIn {
-  from { transform: translateY(-40px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-/* --- TASK COMPONENT SPECIFICS --- */
+/* --- TASK ROW STYLING --- */
 .task-item {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 14px 16px;
+  padding: 16px 20px;
   transition: all var(--transition-normal);
   position: relative;
   cursor: pointer;
@@ -719,7 +788,7 @@ body::after {
 
 .task-title {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-primary);
   transition: color var(--transition-fast);
 }
@@ -727,15 +796,15 @@ body::after {
 .task-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 11px;
+  gap: 12px;
+  font-size: 12px;
   color: var(--text-secondary);
 }
 
 .task-time-badge {
   font-family: var(--font-mono);
   background-color: var(--bg-hover);
-  padding: 2px 6px;
+  padding: 2px 8px;
   border-radius: 4px;
   font-weight: 500;
 }
@@ -743,13 +812,12 @@ body::after {
 .task-category-tag {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
-/* Swipe to delete mockup */
 .task-item-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
@@ -827,4 +895,51 @@ input:focus + .slider {
 
 input:checked + .slider:before {
   transform: translateX(20px);
+}
+
+/* --- RESPONSIVE MEDIA QUERIES FOR DASHBOARD --- */
+@media (max-width: 768px) {
+  .app-sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translateX(-100%);
+  }
+
+  .app-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close-btn {
+    display: block;
+  }
+
+  .menu-toggle-btn {
+    display: block;
+  }
+
+  .app-header {
+    padding: 0 16px;
+  }
+
+  .content-area {
+    padding: 16px;
+  }
+
+  .breadcrumb-parent,
+  .breadcrumb-separator {
+    display: none;
+  }
+
+  .modal-content {
+    width: 92%;
+    padding: 24px 20px;
+  }
+
+  .toast-container {
+    width: auto;
+    left: 16px;
+    right: 16px;
+    top: 16px;
+  }
 }
