@@ -4,8 +4,8 @@ import type { Task, Category, Reminder, SyncLog } from './types';
 import { DEFAULT_CATEGORIES } from './defaults';
 
 // --- SUPABASE CLIENT CONFIGURATION ---
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://dedcojwexvvtmlbdjssd.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlZGNvandleHZ2dG1sYmRqc3NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2NTYzNjUsImV4cCI6MjEwMzIzMjM2NX0.grG0qjelF-MkbUU0beD1vqmzw2ppkNYgD00EQ9zORSY';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
