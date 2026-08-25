@@ -10,12 +10,15 @@ import TasksScreen from './screens/Tasks/TasksScreen';
 import RemindersScreen from './screens/Reminders/RemindersScreen';
 import SettingsScreen from './screens/Settings/SettingsScreen';
 import AdminScreen from './screens/Admin/AdminScreen';
+import PrivacyPolicyScreen from './screens/Legal/PrivacyPolicyScreen';
+import TermsOfServiceScreen from './screens/Legal/TermsOfServiceScreen';
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info, ChevronLeft } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [store, storeActions] = useStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [activeLegalPage, setActiveLegalPage] = useState<'privacy' | 'terms' | null>(null);
 
   // Load Canvas Confetti script on mount
   useEffect(() => {
@@ -128,7 +131,21 @@ export const App: React.FC = () => {
       );
     }
     
-    return <LandingScreen onStart={() => setShowAuth(true)} />;
+    if (activeLegalPage === 'privacy') {
+      return <PrivacyPolicyScreen onBack={() => setActiveLegalPage(null)} />;
+    }
+
+    if (activeLegalPage === 'terms') {
+      return <TermsOfServiceScreen onBack={() => setActiveLegalPage(null)} />;
+    }
+    
+    return (
+      <LandingScreen 
+        onStart={() => setShowAuth(true)} 
+        onPrivacyClick={() => setActiveLegalPage('privacy')}
+        onTermsClick={() => setActiveLegalPage('terms')}
+      />
+    );
   }
 
   return (

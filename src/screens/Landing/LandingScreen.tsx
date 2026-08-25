@@ -3,9 +3,11 @@ import { Sparkles, Zap, ArrowRight, Mail, Globe } from 'lucide-react';
 
 interface LandingScreenProps {
   onStart: () => void;
+  onPrivacyClick: () => void;
+  onTermsClick: () => void;
 }
 
-export const LandingScreen: React.FC<LandingScreenProps> = ({ onStart }) => {
+export const LandingScreen: React.FC<LandingScreenProps> = ({ onStart, onPrivacyClick, onTermsClick }) => {
   return (
     <div 
       style={{ 
@@ -444,10 +446,10 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onStart }) => {
           </div>
 
           <div style={{ borderTop: '1px solid #1E293B', paddingTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '11px' }}>
-            <span>&copy; 2026 MaRap. Tous droits réservés.</span>
+            <span>&copy; {new Date().getFullYear()} MaRap. Tous droits réservés.</span>
             <div style={{ display: 'flex', gap: '16px' }}>
-              <a href="#privacy" style={{ color: '#94A3B8', textDecoration: 'none' }}>Confidentialité</a>
-              <a href="#terms" style={{ color: '#94A3B8', textDecoration: 'none' }}>Conditions</a>
+              <button onClick={onPrivacyClick} style={{ background: 'none', border: 'none', color: '#94A3B8', textDecoration: 'none', cursor: 'pointer', fontSize: '11px' }}>Confidentialité</button>
+              <button onClick={onTermsClick} style={{ background: 'none', border: 'none', color: '#94A3B8', textDecoration: 'none', cursor: 'pointer', fontSize: '11px' }}>Conditions</button>
             </div>
           </div>
         </div>
