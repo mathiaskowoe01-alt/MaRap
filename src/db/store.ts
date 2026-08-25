@@ -270,6 +270,72 @@ export const removeToast = (id: string) => {
   updateState({ toasts: state.toasts.filter(t => t.id !== id) });
 };
 
+// --- PWA WEB PUSH UTILITIES ---
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+export const subscribeUserToPush = async () => {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    console.warn('Push notifications are not supported on this browser.');
+    return;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+    
+    if (!subscription) {
+      // Default standard public VAPID key
+      const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'BFqS7pC2pP69WspL05KzS2U6c_t5C-eL2Uf-H4J0T3_xY2J4t29-wK4t28-vK2k3';
+      const convertedKey = urlBase64ToUint8Array(vapidKey);
+      
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedKey
+      });
+    }
+
+    if (subscription) {
+      const { error } = await supabase.from('push_subscriptions').upsert({
+        user_id: state.currentUserId,
+        subscription: subscription.toJSON(),
+        device_id: 'browser-simulation'
+      });
+
+      if (error) {
+        console.warn('Could not save push subscription to Supabase:', error);
+        
+        // Log warning in history
+        const logTime = new Date().toLocaleTimeString('fr-FR');
+        const historyUpdates = [{
+          timestamp: logTime,
+          status: 'warning' as const,
+          message: "Abonnement Push enregistré en local. Exécutez la table 'push_subscriptions' sur Supabase."
+        }, ...state.syncHistory];
+        
+        updateState({ syncHistory: historyUpdates.slice(0, 15) });
+      } else {
+        console.log('Push subscription saved to Supabase successfully.');
+        addToast('Notifications prêtes', 'Votre appareil est configuré pour recevoir des rappels en production.', 'success');
+      }
+    }
+  } catch (err) {
+    console.error('Error subscribing to push notifications:', err);
+  }
+};
+
 // --- ACTIONS METIER ---
 export const actions = {
   // Tasks CRUD
@@ -498,6 +564,10 @@ export const actions = {
 
   removeToast: (id: string) => {
     removeToast(id);
+  },
+
+  subscribeToPush: async () => {
+    await subscribeUserToPush();
   }
 };
 
@@ -518,9 +588,18 @@ export const useStore = (): [AppState, typeof actions] => {
 
 // --- BACKGROUND DAEMON FOR MOCK PUSH REMINDERS ---
 if (typeof window !== 'undefined') {
-  // Request notifications permissions on startup
-  if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission();
+  // Request notifications permissions and auto-register push on startup
+  if ('Notification' in window) {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          subscribeUserToPush();
+        }
+      });
+    } else if (Notification.permission === 'granted') {
+      // Auto register/check push subscription
+      subscribeUserToPush();
+    }
   }
 
   // Periodic checker (every 3 seconds)

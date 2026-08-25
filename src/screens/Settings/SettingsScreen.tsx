@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore, triggerSync } from '../../db/store';
-import { Cloud, RefreshCw, Database, FileText, Trash2, ShieldAlert } from 'lucide-react';
+import { Cloud, RefreshCw, Database, FileText, Trash2, ShieldAlert, Bell } from 'lucide-react';
 
 export const SettingsScreen: React.FC = () => {
   const [store, storeActions] = useStore();
@@ -107,6 +107,37 @@ export const SettingsScreen: React.FC = () => {
         >
           <RefreshCw size={14} className={store.syncing ? 'shimmer' : ''} style={{ animation: store.syncing ? 'shimmerAnim 1.5s infinite linear' : 'none' }} />
           {store.syncing ? 'Synchronisation...' : 'Synchroniser maintenant'}
+        </button>
+      </div>
+
+      {/* Notifications system push setup */}
+      <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent)', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+          <Bell size={16} />
+          <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Notifications en arrière-plan
+          </span>
+        </div>
+        <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+          Pour recevoir des rappels même lorsque l'application PWA est fermée sur votre téléphone en production.
+        </p>
+        <button
+          onClick={async () => {
+            if ('Notification' in window) {
+              const permission = await Notification.requestPermission();
+              if (permission === 'granted') {
+                storeActions.subscribeToPush();
+              } else {
+                alert("Permission de notification refusée. Activez-la dans les paramètres de votre appareil.");
+              }
+            } else {
+              alert("Votre navigateur ne supporte pas les notifications système.");
+            }
+          }}
+          className="btn btn-secondary"
+          style={{ width: '100%', padding: '10px', fontSize: '13px' }}
+        >
+          Activer les notifications système
         </button>
       </div>
 
