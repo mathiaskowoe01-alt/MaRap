@@ -38,6 +38,7 @@ interface AppState {
   toasts: ToastMessage[];
   syncHistory: SyncHistoryItem[];
   adminUsers: { id: string; email: string; created_at: string; total_tasks: number; completed_tasks: number }[];
+  authAction: 'recovery' | 'email_verified' | null;
 }
 
 // --- LOCAL STORAGE RECOVERY OR INITIAL STATE ---
@@ -73,7 +74,8 @@ let state: AppState = {
   dailyNote: initialDailyNote,
   toasts: [],
   syncHistory: initialSyncHistory,
-  adminUsers: []
+  adminUsers: [],
+  authAction: null
 };
 
 // --- EMITTER SYSTEM FOR REACTIVITY ---
@@ -637,6 +639,31 @@ export const actions = {
     removeToast(id);
   },
 
+  setAuthAction: (action: AppState['authAction']) => {
+    updateState({ authAction: action });
+  },
+
+  resetPasswordForEmail: async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/`,
+    });
+    if (error) {
+      addToast('Erreur', error.message, 'error');
+      throw error;
+    }
+    addToast('E-mail envoyé', 'Vérifiez votre boîte de réception pour réinitialiser votre mot de passe.', 'success');
+  },
+
+  updatePassword: async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) {
+      addToast('Erreur de mise à jour', error.message, 'error');
+      throw error;
+    }
+    addToast('Mot de passe modifié', 'Votre mot de passe a été mis à jour avec succès.', 'success');
+    updateState({ authAction: null });
+  },
+
   subscribeToPush: async () => {
     await subscribeUserToPush();
   },
@@ -751,8 +778,20 @@ export const useStore = (): [AppState, typeof actions] => {
 
 // --- BACKGROUND DAEMON FOR MOCK PUSH REMINDERS ---
 if (typeof window !== 'undefined') {
+  // Intercept specific auth fragments from emails
+  const hash = window.location.hash;
+  if (hash.includes('type=recovery')) {
+    updateState({ authAction: 'recovery' });
+  } else if (hash.includes('type=signup') || hash.includes('type=invite')) {
+    updateState({ authAction: 'email_verified' });
+  }
+
   // Listen for Supabase Authentication changes
-  supabase.auth.onAuthStateChange((_event, session) => {
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      updateState({ authAction: 'recovery' });
+    }
+
     if (session && session.user) {
       const isNewUser = state.currentUserId !== session.user.id;
       

@@ -86,8 +86,8 @@ export const App: React.FC = () => {
   );
 
   // Auth / Landing routing when not authenticated
-  if (!store.isAuthenticated) {
-    if (showAuth) {
+  if (!store.isAuthenticated || store.authAction) {
+    if (showAuth || store.authAction) {
       return (
         <div style={{ position: 'relative' }}>
           {renderToastContainer()}
